@@ -109,3 +109,6 @@ size_info.txt
 
 # Vale
 .vale/styles/*
+
+# Workspace directory
+workspace
