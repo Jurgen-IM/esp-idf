@@ -14,18 +14,22 @@
 // Remove compat macro and include lwip API
 #undef SNTP_OPMODE_POLL
 #include "lwip/apps/sntp.h"
-//#include "lwip/priv/tcpip_priv.h"
-#include "lwip/tcpip.h"
+#include "lwip/priv/tcpip_priv.h"
+#include "esp_macros.h"
 
 static const char *TAG = "sntp";
 
 ESP_STATIC_ASSERT(SNTP_OPMODE_POLL == ESP_SNTP_OPMODE_POLL, "SNTP mode in lwip doesn't match the IDF enum. Please make sure lwIP version is correct");
 ESP_STATIC_ASSERT(SNTP_OPMODE_LISTENONLY == ESP_SNTP_OPMODE_LISTENONLY, "SNTP mode in lwip doesn't match the IDF enum. Please make sure lwIP version is correct");
 
+#define SNTP_ERROR(func, message) do { \
+        err_t err = func;   \
+        LWIP_ERROR(message, err == ERR_OK, );   \
+    } while (0)
+
 static volatile sntp_sync_mode_t sntp_sync_mode = SNTP_SYNC_MODE_IMMED;
 static volatile sntp_sync_status_t sntp_sync_status = SNTP_SYNC_STATUS_RESET;
 static sntp_sync_time_cb_t time_sync_notification_cb = NULL;
-static sntp_sync_error_time_cb_t time_sync_error_notification_cb = NULL;																
 static uint32_t s_sync_interval = CONFIG_LWIP_SNTP_UPDATE_DELAY;
 
 inline void sntp_set_sync_status(sntp_sync_status_t sync_status)
@@ -75,10 +79,6 @@ void sntp_set_time_sync_notification_cb(sntp_sync_time_cb_t callback)
     time_sync_notification_cb = callback;
 }
 
-void sntp_set_time_sync_error_notification_cb(sntp_sync_error_time_cb_t callback)
-{
-    time_sync_error_notification_cb = callback;
-}
 sntp_sync_status_t sntp_get_sync_status(void)
 {
     sntp_sync_status_t ret_sync_status = SNTP_SYNC_STATUS_RESET;
@@ -113,6 +113,22 @@ uint32_t sntp_get_sync_interval(void)
     return s_sync_interval;
 }
 
+static void sntp_do_restart(void *ctx)
+{
+    (void)ctx;
+    sntp_stop();
+    sntp_init();
+}
+
+bool sntp_restart(void)
+{
+    if (sntp_enabled()) {
+        SNTP_ERROR(tcpip_callback(sntp_do_restart, NULL), "sntp_restart: tcpip_callback() failed");
+        return true;
+    }
+    return false;
+}
+
 void sntp_set_system_time(uint32_t sec, uint32_t us)
 {
     // Note: SNTP/NTP timestamp is defined as 64-bit fixed point int
@@ -142,63 +158,105 @@ void sntp_get_system_time(uint32_t *sec, uint32_t *us)
     sntp_set_sync_status(SNTP_SYNC_STATUS_RESET);
 }
 
-void sntp_update_error(void)
+static void do_setoperatingmode(void *ctx)
 {
-    if (time_sync_error_notification_cb) {
-        time_sync_error_notification_cb();
-    }
+    sntp_setoperatingmode((intptr_t)ctx);
 }
 
-#define SNTP_SERVER_MAXLEN		(63)
-static uint8_t sntpServerName[CONFIG_LWIP_SNTP_MAX_SERVERS][SNTP_SERVER_MAXLEN+1];
-																		  
-																	 
- 
-
-void sntp_serversFromString(uint8_t *srvs)
+void esp_sntp_setoperatingmode(esp_sntp_operatingmode_t operating_mode)
 {
-	int i=0;
-	if(*srvs != '\0')
-	{
-		while(i<CONFIG_LWIP_SNTP_MAX_SERVERS)
-		{
-			char *p;
-			int len;
-			if((p=strpbrk((const char*)srvs, (const char*)" ,;"))== NULL)
-				len=strlen((const char *)srvs);
-			else
-				len=(uintptr_t)p-(uintptr_t)srvs;
-			if(len > SNTP_SERVER_MAXLEN)
-				len = SNTP_SERVER_MAXLEN;
-			memcpy(sntpServerName[i], srvs, len);
-			sntpServerName[i][len]='\0';
-			sntp_setservername(i, (const char *)sntpServerName[i]);
-			i++;
-			if(p==NULL)
-				break;
-			while(*p==' ' || *p==',' || *p==';') p++;
-			srvs = (uint8_t *)p;
-		}
-	}
-	while(i<CONFIG_LWIP_SNTP_MAX_SERVERS)
-	{
-		sntp_setservername(i, NULL);
-		sntpServerName[i][0]='\0';
-		i++;
-	}
+    SNTP_ERROR(tcpip_callback(do_setoperatingmode, (void*)operating_mode),
+               "esp_sntp_setoperatingmode: tcpip_callback() failed");
 }
 
-void sntp_initialize(void)
+static void do_init(void *ctx)
 {
-	sntp_init();
+    sntp_init();
 }
 
-void sntp_deinitialize(void)
+void esp_sntp_init(void)
 {
-	sntp_stop();
+    SNTP_ERROR(tcpip_callback(do_init, NULL), "esp_sntp_init: tcpip_callback() failed");
 }
 
-void sntp_set_operatingmode(esp_sntp_operatingmode_t opm)
+static void do_stop(void *ctx)
 {
-	sntp_setoperatingmode((uint8_t)opm);
+    sntp_stop();
+}
+
+void esp_sntp_stop(void)
+{
+    SNTP_ERROR(tcpip_callback(do_stop, NULL), "esp_sntp_stop: tcpip_callback() failed");
+}
+
+struct tcpip_setserver {
+    struct tcpip_api_call_data call;
+    u8_t idx;
+    const ip_addr_t *addr;
+};
+
+static err_t do_setserver(struct tcpip_api_call_data *msg)
+{
+    struct tcpip_setserver *params = __containerof(msg, struct tcpip_setserver, call);
+    sntp_setserver(params->idx, params->addr);
+    return ERR_OK;
+}
+
+void esp_sntp_setserver(u8_t idx, const ip_addr_t *addr)
+{
+    struct tcpip_setserver params = {
+            .idx = idx,
+            .addr = addr
+    };
+    SNTP_ERROR(tcpip_api_call(do_setserver, &params.call), "esp_sntp_setserver :tcpip_api_call() failed");
+}
+
+struct tcpip_setservername {
+    struct tcpip_api_call_data call;
+    u8_t idx;
+    const char *server;
+};
+
+static err_t do_setservername(struct tcpip_api_call_data *msg)
+{
+    struct tcpip_setservername *params = __containerof(msg, struct tcpip_setservername, call);
+    sntp_setservername(params->idx, params->server);
+    return ERR_OK;
+}
+
+void esp_sntp_setservername(u8_t idx, const char *server)
+{
+    struct tcpip_setservername params = {
+            .idx = idx,
+            .server = server
+    };
+    SNTP_ERROR(tcpip_api_call(do_setservername, &params.call), "esp_sntp_setservername :tcpip_api_call() failed");
+}
+
+const char *esp_sntp_getservername(u8_t idx)
+{
+    return sntp_getservername(idx);
+}
+
+const ip_addr_t* esp_sntp_getserver(u8_t idx)
+{
+    return sntp_getserver(idx);
+}
+
+#if LWIP_DHCP_GET_NTP_SRV
+static void do_servermode_dhcp(void* ctx)
+{
+    sntp_servermode_dhcp((intptr_t)ctx);
+}
+
+void esp_sntp_servermode_dhcp(bool enable)
+{
+    SNTP_ERROR(tcpip_callback(do_servermode_dhcp, (void*)enable), "esp_sntp_servermode_dhcp: tcpip_callback() failed");
+}
+
+#endif /* LWIP_DHCP_GET_NTP_SRV */
+
+bool esp_sntp_enabled(void)
+{
+    return sntp_enabled();
 }

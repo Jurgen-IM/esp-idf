@@ -32,7 +32,7 @@
  */
 
 /* Selects which Timer Group peripheral to use */
-#define LACT_MODULE     1
+#define LACT_MODULE     0
 
 #if LACT_MODULE == 0
 #define INTR_SOURCE_LACT ETS_TG0_LACT_LEVEL_INTR_SOURCE

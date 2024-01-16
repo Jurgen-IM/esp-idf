@@ -60,8 +60,6 @@ sys_mutex_new(sys_mutex_t *pxMutex)
 void
 sys_mutex_lock(sys_mutex_t *pxMutex)
 {
-  if(*pxMutex == NULL)
-	return;		 
   BaseType_t ret = xSemaphoreTake(*pxMutex, portMAX_DELAY);
 
   LWIP_ASSERT("failed to take the mutex", ret == pdTRUE);
@@ -76,8 +74,6 @@ sys_mutex_lock(sys_mutex_t *pxMutex)
 void
 sys_mutex_unlock(sys_mutex_t *pxMutex)
 {
-  if(*pxMutex == NULL)
-	return;	
   BaseType_t ret = xSemaphoreGive(*pxMutex);
 
   LWIP_ASSERT("failed to give the mutex", ret == pdTRUE);
@@ -92,8 +88,6 @@ sys_mutex_unlock(sys_mutex_t *pxMutex)
 void
 sys_mutex_free(sys_mutex_t *pxMutex)
 {
-  if(*pxMutex == NULL)
-	return;
   LWIP_DEBUGF(ESP_THREAD_SAFE_DEBUG, ("sys_mutex_free: m=%p\n", *pxMutex));
   vSemaphoreDelete(*pxMutex);
   *pxMutex = NULL;
@@ -186,20 +180,6 @@ sys_arch_sem_wait(sys_sem_t *sem, u32_t timeout)
     LWIP_ASSERT("taking semaphore failed", ret == pdTRUE);
   }
 
-  return 0;
-}
-
-u32_t
-sys_arch_sem_check(sys_sem_t *sem)
-{
-  BaseType_t ret;
-
-  ret = xSemaphoreTake(*sem, 0);
-  if (ret == errQUEUE_EMPTY) {
-    /* timed out */
-    return SYS_ARCH_TIMEOUT;
-  }
-  LWIP_ASSERT("taking semaphore failed", ret == pdTRUE);												
   return 0;
 }
 
@@ -423,7 +403,7 @@ sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize
   ret = xTaskCreatePinnedToCore(thread, name, stacksize, arg, prio, &rtos_task,
           CONFIG_LWIP_TCPIP_TASK_AFFINITY);
 
-  LWIP_DEBUGF(TCPIP_DEBUG, ("new lwip task : %x, prio:%d,stack:%d\n",
+  LWIP_DEBUGF(TCPIP_DEBUG, ("new lwip task : %" U32_F ", prio:%d,stack:%d\n",
              (u32_t)rtos_task, prio, stacksize));
 
   if (ret != pdTRUE) {

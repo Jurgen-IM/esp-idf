@@ -22,10 +22,6 @@ static inline void freeaddrinfo(struct addrinfo *ai)
 static inline int getaddrinfo(const char *nodename, const char *servname, const struct addrinfo *hints, struct addrinfo **res)
 { return lwip_getaddrinfo(nodename, servname, hints, res); }
 
-static inline int dns_resolve_start(const char *nodename, u8_t dns_addrtype, void **ctx)
-{ return lwip_dns_resolve_start(nodename, dns_addrtype, ctx); }
-static inline int dns_resolve_check(ip_addr_t *addr, void *ctx)
-{ return lwip_dns_resolve_check(addr, ctx); }
 #ifdef __cplusplus
 }
 #endif

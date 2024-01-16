@@ -949,10 +949,6 @@ void esp_netif_destroy(esp_netif_t *esp_netif)
         return;
     }
     esp_netif_lwip_ipc_call(esp_netif_destroy_api, esp_netif, NULL);
-    //dns delete netif servers
-    esp_netif_dns_info_t dns;
-    dns.ip.u_addr.ip4.addr=0;
-    esp_netif_set_dns_info(esp_netif, ESP_NETIF_DNS_MAX, &dns);													   
 }
 
 esp_err_t esp_netif_attach(esp_netif_t *esp_netif, esp_netif_iodriver_handle driver_handle)
@@ -1426,6 +1422,19 @@ static esp_err_t esp_netif_dhcpc_stop_api(esp_netif_api_msg_t *msg)
 
 esp_err_t esp_netif_dhcpc_stop(esp_netif_t *esp_netif) _RUN_IN_LWIP_TASK_IF_SUPPORTED(esp_netif_dhcpc_stop_api, esp_netif, NULL)
 
+static void dns_clear_servers(bool keep_fallback)
+{
+    u8_t numdns = 0;
+
+    for (numdns = 0; numdns < DNS_MAX_SERVERS; numdns ++) {
+        if (keep_fallback && numdns == DNS_FALLBACK_SERVER_INDEX) {
+            continue;
+        }
+
+        dns_setserver(numdns, NULL);
+    }
+}
+
 static esp_err_t esp_netif_dhcpc_start_api(esp_netif_api_msg_t *msg)
 {
     esp_netif_t *esp_netif = msg->esp_netif;
@@ -1446,7 +1455,7 @@ static esp_err_t esp_netif_dhcpc_start_api(esp_netif_api_msg_t *msg)
     esp_netif_reset_ip_info(esp_netif);
 
 #if LWIP_DNS
-   dns_setserver(ESP_NETIF_DNS_MAX, esp_netif->lwip_netif, NULL);
+    dns_clear_servers(true);
 #endif
 
     if (p_netif != NULL) {
@@ -1811,7 +1820,7 @@ static esp_err_t esp_netif_set_ip_info_api(esp_netif_api_msg_t *msg)
             return ESP_ERR_ESP_NETIF_DHCP_NOT_STOPPED;
         }
 #if LWIP_DNS /* don't build if not configured for use in lwipopts.h */
-   dns_setserver(ESP_NETIF_DNS_MAX, esp_netif->lwip_netif, NULL);
+        dns_clear_servers(true);
 #endif
     }
 
@@ -1906,7 +1915,7 @@ static esp_err_t esp_netif_set_dns_info_api(esp_netif_api_msg_t *msg)
         LOG_NETIF_DISABLED_AND_DO("DHCP Server", return ESP_ERR_NOT_SUPPORTED);
 #endif
     } else {
-        dns_setserver(type,esp_netif->lwip_netif, &lwip_ip); 
+        dns_setserver(type, &lwip_ip);
     }
 
     return ESP_OK;
@@ -1923,11 +1932,11 @@ esp_err_t esp_netif_set_dns_info(esp_netif_t *esp_netif, esp_netif_dns_type_t ty
         return ESP_ERR_ESP_NETIF_INVALID_PARAMS;
     }
 
-/*    if (ESP_IP_IS_ANY(dns->ip)) {
+    if (ESP_IP_IS_ANY(dns->ip)) {
         ESP_LOGD(TAG, "set dns invalid dns");
         return ESP_ERR_ESP_NETIF_INVALID_PARAMS;
     }
-*/
+
     esp_netif_dns_param_t dns_param = {
         .dns_type = type,
         .dns_info = dns
@@ -1955,7 +1964,7 @@ static esp_err_t esp_netif_get_dns_info_api(esp_netif_api_msg_t *msg)
 #endif
     } else {
         const ip_addr_t*  dns_ip = NULL;
-        dns_ip = dns_getserver(type, esp_netif->lwip_netif);
+        dns_ip = dns_getserver(type);
         if(dns_ip != NULL) {
             IP_TO_ESPIP(dns_ip, &dns->ip);
         }

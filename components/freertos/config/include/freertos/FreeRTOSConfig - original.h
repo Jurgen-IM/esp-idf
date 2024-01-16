@@ -90,7 +90,7 @@
 #endif /* configUSE_TICKLESS_IDLE */
 #define configCPU_CLOCK_HZ                           ( CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ * 1000000 )
 #define configTICK_RATE_HZ                           CONFIG_FREERTOS_HZ
-#define configMAX_PRIORITIES                         ( 13 )
+#define configMAX_PRIORITIES                         ( 25 )
 #define configUSE_TIME_SLICING                       1
 #define configUSE_16_BIT_TICKS                       0
 #define configIDLE_SHOULD_YIELD                      0

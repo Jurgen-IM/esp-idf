@@ -28,8 +28,8 @@ menu "LWIP"
 
     config LWIP_TCPIP_TASK_PRIO
         int "LWIP TCP/IP Task Priority"
-        default 8
-        range 1 13
+        default 18
+        range 1 24
         help
             LWIP tcpip task priority. In case of high throughput, this parameter
             could be changed up to (configMAX_PRIORITIES-1).
@@ -56,7 +56,7 @@ menu "LWIP"
 
     config LWIP_CHECK_THREAD_SAFETY
         bool "Checks that lwip API runs in expected context"
-        default y
+        default n
         help
             Enable to check that the project does not violate lwip thread safety.
             If enabled, all lwip functions that require thread awareness run an assertion
@@ -134,8 +134,8 @@ menu "LWIP"
 
     config LWIP_MAX_SOCKETS
         int "Max number of open sockets"
-        range 1 32
-        default 16
+        range 1 16
+        default 10
         help
             Sockets take up a certain amount of memory, and allowing fewer
             sockets to be open at the same time conserves memory. Specify
@@ -590,7 +590,7 @@ menu "LWIP"
 
         config LWIP_TCP_MSS
             int "Maximum Segment Size (MSS)"
-            default 1300
+            default 1440
             range 536 1460
             help
                 Set maximum segment size for TCP transmission.
@@ -610,7 +610,7 @@ menu "LWIP"
 
         config LWIP_TCP_MSL
             int "Maximum segment lifetime (MSL)"
-            default 20000
+            default 60000
             help
                 Set maximum segment lifetime in milliseconds.
 
@@ -622,9 +622,9 @@ menu "LWIP"
 
         config LWIP_TCP_SND_BUF_DEFAULT
             int "Default send buffer size"
-            default 2600  # 2 * default MSS
-            range 1200 65535 if !LWIP_WND_SCALE
-            range 1200 1024000 if LWIP_WND_SCALE
+            default 5760  # 4 * default MSS
+            range 2440 65535 if !LWIP_WND_SCALE
+            range 2440 1024000 if LWIP_WND_SCALE
             help
                 Set default send buffer size for new TCP sockets.
 
@@ -639,9 +639,9 @@ menu "LWIP"
 
         config LWIP_TCP_WND_DEFAULT
             int "Default receive window size"
-            default 2600 # 2 * default MSS
-            range 1200 65535 if !LWIP_WND_SCALE
-            range 1200 1024000 if LWIP_WND_SCALE
+            default 5760 # 4 * default MSS
+            range 2440 65535 if !LWIP_WND_SCALE
+            range 2440 1024000 if LWIP_WND_SCALE
             help
                 Set default TCP receive window size for new TCP sockets.
 
@@ -694,11 +694,6 @@ menu "LWIP"
 
                 Disable this option to save some RAM during TCP sessions, at the expense
                 of increased retransmissions if segments arrive out of order.
-
-        config LWIP_TCP_SACK_OUT
-            bool "Support sending selective acknowledgements"
-            default n
-            depends on LWIP_TCP_QUEUE_OOSEQ
 
         config LWIP_TCP_OOSEQ_TIMEOUT
             int "Timeout for each pbuf queued in TCP OOSEQ, in RTOs."
@@ -1321,64 +1316,4 @@ menu "LWIP"
         depends on LWIP_DEBUG
         default n
 
-   menu "SNMP agent"			
-        config SNMP_LWIP_DEVICE_OID
-            int "SNMP DEVICE OID number"
-            default 20
-            help
-                SNMP DEVICE OID number
-
-        config SNMP_MAX_COMMUNITY_STR_LEN
-            int "Maximum community length"
-            default 16
-            help
-                Maximum community length
-
-        config SNMP_MAX_TRUSTED_ADDRESSES
-            int "Maximum supported trusted ip addresses"
-            default 5
-            help
-                Maximum supported trusted ip addresses
-
-         config SNMP_MAX_TRAP_ADDRESSES
-            int "Maximum supported traps send addresses"
-            default 5
-            help
-                Maximum supported traps send addresses
-
-         config SNMP_TRAPS_CHECK_PERIOD_MS
-            int "Period of trap checking function, ms"
-            default 50
-            help
-                Period of trap checking function			
-
-    endmenu # SNMP
-	
-    menu "SNMP V3 agent"
-
-        config SNMP_MESSAGE_MAX_SIZE
-            int "SNMP message max size"
-            default 1024
-            help
-                SNMP message max size
-
-        config SNMPV3_MAX_USERS
-            int "SNMP v3 maximum users"
-            default 2
-            help
-                SNMP v3 maximum users
-
-        config SNMP_MAX_USERNAME_LEN
-            int "SNMP v3 maximum username length"
-            default 32
-            help
-                SNMP v3 maximum username length
-
-         config SNMP_MAX_PASSWORD_LEN
-            int "SNMP v3 maximum password length"
-            default 20
-            help
-                SNMP v3 maximum password length
-
-    endmenu # SNMP V3
 endmenu

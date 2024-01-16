@@ -41,6 +41,8 @@ extern "C" {
 
 #define IPSTR "%d.%d.%d.%d"
 #define esp_ip4_addr_get_byte(ipaddr, idx) (((const uint8_t*)(&(ipaddr)->addr))[idx])
+
+#define esp_ip4_addr_get_wbyte(ipaddr, idx) (((uint8_t*)(&(ipaddr)->addr))[idx])
 #define esp_ip4_addr1(ipaddr) esp_ip4_addr_get_byte(ipaddr, 0)
 #define esp_ip4_addr2(ipaddr) esp_ip4_addr_get_byte(ipaddr, 1)
 #define esp_ip4_addr3(ipaddr) esp_ip4_addr_get_byte(ipaddr, 2)
