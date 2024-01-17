@@ -62,7 +62,8 @@
 
 [submodule "components/lwip/lwip"]
 	path = components/lwip/lwip
-	url = ../../espressif/esp-lwip.git
+	url = https://github.com/Jurgen-IM/esp-lwip.git
+	branch = prod
 
 [submodule "components/mqtt/esp-mqtt"]
 	path = components/mqtt/esp-mqtt
