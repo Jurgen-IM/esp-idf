@@ -101,7 +101,7 @@ if(CONFIG_LWIP_ENABLE)
         "port/hooks/lwip_default_hooks.c"
         "port/debug/lwip_debug.c"
         "port/sockets_ext.c"
-    "port/freertos/sys_arch.c"
+		"port/freertos/sys_arch.c"
     
     "lwip/src/apps/snmp/snmp_asn1.c"
     "lwip/src/apps/snmp/snmp_core.c"
