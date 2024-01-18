@@ -60,11 +60,6 @@
 	path = components/mbedtls/mbedtls
 	url = ../../espressif/mbedtls.git
 
-[submodule "components/lwip/lwip"]
-	path = components/lwip/lwip
-	url = https://github.com/Jurgen-IM/esp-lwip.git
-	branch = prod
-
 [submodule "components/mqtt/esp-mqtt"]
 	path = components/mqtt/esp-mqtt
 	url = ../../espressif/esp-mqtt.git
@@ -148,3 +143,8 @@
 [submodule "components/bt/esp_ble_mesh/lib/lib"]
 	path = components/bt/esp_ble_mesh/lib/lib
 	url = ../../espressif/esp-ble-mesh-lib.git
+
+[submodule "components/lwip/lwip"]
+	path = components/lwip/lwip
+	url = https://github.com/Jurgen-IM/esp-lwip.git
+	branch = prod
