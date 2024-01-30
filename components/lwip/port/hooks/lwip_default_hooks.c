@@ -67,6 +67,7 @@ int __weak lwip_hook_ip6_input(struct pbuf *p, struct netif *inp)
 
 #ifdef CONFIG_LWIP_IPV4
 
+#if 0 /*lwip_hook moved to the lwip submodule*/
 #ifdef LWIP_HOOK_IP4_ROUTE_SRC
 #if ESP_IP4_ROUTE
 #include "lwip/netif.h"
@@ -116,6 +117,7 @@ ip4_route_src_hook(const ip4_addr_t *src,const ip4_addr_t *dest)
 }
 #endif
 #endif /* LWIP_HOOK_IP4_ROUTE_SRC */
+#endif /*lwip_hook moved to the lwip submodule*/
 
 #define LWIP_DHCP_ENABLE_MTU_UPDATE         1
 #define LWIP_DHCP_ENABLE_VENDOR_SPEC_IDS    !ESP_DHCP_DISABLE_VENDOR_CLASS_IDENTIFIER
