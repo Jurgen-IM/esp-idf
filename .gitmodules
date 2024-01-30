@@ -149,3 +149,28 @@
 	url = https://github.com/Jurgen-IM/esp-lwip.git
 	branch = prod
 
+[submodule "components/imfs"]
+	path = components/imfs
+	url = https://github.com/Jurgen-IM/imfs.git
+	branch = main
+
+[submodule "components/iml_helpers"]
+	path = components/iml_helpers
+	url = https://github.com/Jurgen-IM/iml_helpers.git
+	branch = main
+
+[submodule "components/iml_tls"]
+	path = components/iml_tls
+	url = https://github.com/Jurgen-IM/iml_tls.git
+	branch = main
+
+[submodule "components/iml_httpd_server"]
+	path = components/iml_httpd_server
+	url = https://github.com/Jurgen-IM/iml_httpd_server.git
+	branch = main
+
+[submodule "components/iml_inventory"]
+	path = components/iml_inventory
+	url = https://github.com/Jurgen-IM/iml_inventory.git
+	branch = main
+
