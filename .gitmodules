@@ -143,3 +143,9 @@
 [submodule "components/bt/esp_ble_mesh/lib/lib"]
 	path = components/bt/esp_ble_mesh/lib/lib
 	url = ../../espressif/esp-ble-mesh-lib.git
+	
+[submodule "components/lwip/lwip"]
+	path = components/lwip/lwip
+	url = https://github.com/Jurgen-IM/esp-lwip.git
+	branch = prod
+
