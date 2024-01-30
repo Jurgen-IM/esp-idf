@@ -11,6 +11,7 @@ if(CONFIG_LWIP_ENABLE)
         include/apps
         include/apps/sntp
         lwip/src/include
+	lwip/src/apps/snmp			   
         port/include
         port/freertos/include/
         port/${target}/include
@@ -100,7 +101,32 @@ if(CONFIG_LWIP_ENABLE)
         "port/hooks/lwip_default_hooks.c"
         "port/debug/lwip_debug.c"
         "port/sockets_ext.c"
-        "port/freertos/sys_arch.c")
+		"port/freertos/sys_arch.c"
+    
+    "lwip/src/apps/snmp/snmp_asn1.c"
+    "lwip/src/apps/snmp/snmp_core.c"
+    "lwip/src/apps/snmp/snmp_mib2_icmp.c"  
+    "lwip/src/apps/snmp/snmp_mib2_interfaces.c"    
+    "lwip/src/apps/snmp/snmp_mib2_ip.c"    
+    "lwip/src/apps/snmp/snmp_mib2_snmp.c"
+    "lwip/src/apps/snmp/snmp_mib2_system.c"
+    "lwip/src/apps/snmp/snmp_mib2_tcp.c"
+    "lwip/src/apps/snmp/snmp_mib2_udp.c"
+    "lwip/src/apps/snmp/snmp_mib2.c"
+    "lwip/src/apps/snmp/snmp_msg.c"
+    "lwip/src/apps/snmp/snmp_netconn.c"
+    "lwip/src/apps/snmp/snmp_pbuf_stream.c"
+    "lwip/src/apps/snmp/snmp_raw.c"
+    "lwip/src/apps/snmp/snmp_scalar.c"
+    "lwip/src/apps/snmp/snmp_snmpv2_framework.c"
+    "lwip/src/apps/snmp/snmp_snmpv2_usm.c"
+    "lwip/src/apps/snmp/snmp_table.c"
+    "lwip/src/apps/snmp/snmp_threadsync.c"
+    "lwip/src/apps/snmp/snmp_traps.c"
+    "lwip/src/apps/snmp/snmpv3_mbedtls.c"
+    "lwip/src/apps/snmp/snmpv3.c"  
+    
+    )
 
     if(CONFIG_LWIP_PPP_SUPPORT)
         list(APPEND srcs
@@ -166,7 +192,7 @@ if(CONFIG_LWIP_ENABLE)
 endif() # CONFIG_LWIP_ENABLE
 
 if(NOT ${target} STREQUAL "linux")
-    set(priv_requires vfs)
+    set(priv_requires vfs mbedtls)
 endif()
 
 idf_component_register(SRCS "${srcs}"
