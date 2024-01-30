@@ -243,10 +243,6 @@ esp_err_t i2c_master_write_read_device(i2c_port_t i2c_num, uint8_t device_addres
                                        uint8_t* read_buffer, size_t read_size,
                                        TickType_t ticks_to_wait);
 
-esp_err_t i2c_master_write_write_device(i2c_port_t i2c_num, uint8_t device_address,
-                                       const uint8_t* write_buffer, size_t write_size,
-                                       uint8_t* write_buffer_1, size_t write_size_1,
-                                       TickType_t ticks_to_wait);												
 
 /**
  * @brief Create and initialize an I2C commands list with a given buffer.

@@ -26,10 +26,10 @@ static esp_err_t spi_flash_command_erase_block_4B(esp_flash_t *chip, uint32_t st
 esp_err_t spi_flash_chip_winbond_probe(esp_flash_t *chip, uint32_t flash_id)
 {
     /* Check manufacturer and product IDs match our desired masks */
-//    const uint8_t MFG_ID = 0xEF;
-//    if (flash_id >> 16 != MFG_ID && flash_id >> 16 != MFG_ID_FUDAN) {
-//        return ESP_ERR_NOT_FOUND;
-//    }
+    const uint8_t MFG_ID = 0xEF;
+    if (flash_id >> 16 != MFG_ID) {
+        return ESP_ERR_NOT_FOUND;
+    }
 
     return ESP_OK;
 }

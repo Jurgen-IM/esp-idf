@@ -1080,44 +1080,6 @@ end:
     return err;
 }
 
-esp_err_t i2c_master_write_write_device(i2c_port_t i2c_num, uint8_t device_address,
-                                       const uint8_t* write_buffer, size_t write_size,
-                                       uint8_t* write_buffer_1, size_t write_size_1,
-                                       TickType_t ticks_to_wait)
-{
-    esp_err_t err = ESP_OK;
-    uint8_t buffer[I2C_TRANS_BUF_MINIMUM_SIZE] = { 0 };
-
-    i2c_cmd_handle_t handle = i2c_cmd_link_create_static(buffer, sizeof(buffer));
-    assert (handle != NULL);
-
-    err = i2c_master_start(handle);
-    if (err != ESP_OK) {
-        goto end;
-    }
-
-    err = i2c_master_write_byte(handle, device_address << 1 | I2C_MASTER_WRITE, true);
-    if (err != ESP_OK) {
-        goto end;
-    }
-
-    err = i2c_master_write(handle, write_buffer, write_size, true);
-    if (err != ESP_OK) {
-        goto end;
-    }
-
-    err = i2c_master_write(handle, write_buffer_1, write_size_1, true);
-    if (err != ESP_OK) {
-        goto end;
-    }
-
-    i2c_master_stop(handle);
-    err = i2c_master_cmd_begin(i2c_num, handle, ticks_to_wait);
-
-end:
-    i2c_cmd_link_delete_static(handle);
-    return err;
-}
 static inline bool i2c_cmd_link_is_static(i2c_cmd_desc_t *cmd_desc)
 {
     return (cmd_desc->free_buffer != NULL);
@@ -1527,7 +1489,7 @@ esp_err_t i2c_master_cmd_begin(i2c_port_t i2c_num, i2c_cmd_handle_t cmd_handle, 
     esp_err_t ret = ESP_FAIL;
     i2c_obj_t *p_i2c = p_i2c_obj[i2c_num];
     TickType_t ticks_start = xTaskGetTickCount();
-    BaseType_t res = xSemaphoreTake(p_i2c->cmd_mux, I2C_CMD_ALIVE_INTERVAL_TICK);
+    BaseType_t res = xSemaphoreTake(p_i2c->cmd_mux, ticks_to_wait);
     if (res == pdFALSE) {
         return ESP_ERR_TIMEOUT;
     }
@@ -1567,11 +1529,11 @@ esp_err_t i2c_master_cmd_begin(i2c_port_t i2c_num, i2c_cmd_handle_t cmd_handle, 
     while (1) {
         TickType_t wait_time = xTaskGetTickCount();
         if (wait_time - ticks_start > ticks_to_wait) { // out of time
-            wait_time = ticks_to_wait;
+            wait_time = I2C_CMD_ALIVE_INTERVAL_TICK;
         } else {
             wait_time = ticks_to_wait - (wait_time - ticks_start);
-            if (wait_time < ticks_to_wait) {
-                wait_time = ticks_to_wait;
+            if (wait_time < I2C_CMD_ALIVE_INTERVAL_TICK) {
+                wait_time = I2C_CMD_ALIVE_INTERVAL_TICK;
             }
         }
         // In master mode, since we don't have an interrupt to detective bus error or FSM state, what we do here is to make

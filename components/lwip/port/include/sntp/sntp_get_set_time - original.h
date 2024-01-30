@@ -40,8 +40,6 @@ void sntp_set_system_time(uint32_t sec, uint32_t us);
  */
 void sntp_get_system_time(uint32_t* sec, uint32_t* us);
 
-void sntp_update_error(void);
-
 #ifdef __cplusplus
 }
 #endif

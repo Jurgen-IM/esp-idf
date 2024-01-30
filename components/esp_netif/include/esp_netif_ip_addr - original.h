@@ -41,8 +41,6 @@ extern "C" {
 
 #define IPSTR "%d.%d.%d.%d"
 #define esp_ip4_addr_get_byte(ipaddr, idx) (((const uint8_t*)(&(ipaddr)->addr))[idx])
-
-#define esp_ip4_addr_get_wbyte(ipaddr, idx) (((uint8_t*)(&(ipaddr)->addr))[idx])
 #define esp_ip4_addr1(ipaddr) esp_ip4_addr_get_byte(ipaddr, 0)
 #define esp_ip4_addr2(ipaddr) esp_ip4_addr_get_byte(ipaddr, 1)
 #define esp_ip4_addr3(ipaddr) esp_ip4_addr_get_byte(ipaddr, 2)
@@ -81,8 +79,8 @@ extern "C" {
 
 #define ESP_IP4TOADDR(a,b,c,d) esp_netif_htonl(ESP_IP4TOUINT32(a, b, c, d))
 
-#define ESP_IP4ADDR_INIT(a, b, c, d)  { .type = ESP_IPADDR_TYPE_V4, .u_addr = { .ip4 = { .addr = ESP_IP4TOADDR(a, b, c, d) }}}
-#define ESP_IP6ADDR_INIT(a, b, c, d)  { .type = ESP_IPADDR_TYPE_V6, .u_addr = { .ip6 = { .addr = { a, b, c, d }, .zone = 0 }}}
+#define ESP_IP4ADDR_INIT(a, b, c, d)  { .type = ESP_IPADDR_TYPE_V4, .u_addr = { .ip4 = { .addr = ESP_IP4TOADDR(a, b, c, d) }}};
+#define ESP_IP6ADDR_INIT(a, b, c, d)  { .type = ESP_IPADDR_TYPE_V6, .u_addr = { .ip6 = { .addr = { a, b, c, d }, .zone = 0 }}};
 
 #ifndef IP4ADDR_STRLEN_MAX
 #define IP4ADDR_STRLEN_MAX  16

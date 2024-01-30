@@ -72,12 +72,6 @@ extern "C" {
 #define SYS_LIGHTWEIGHT_PROT        1
 
 /**
- * MEMSET: override this if you have a faster implementation at hand than the
- * one included in your C library
- */
-#define MEMSET(dst,ch,len)             memset(dst,ch,len)
-
-/**
  * MEMCPY: override this if you have a faster implementation at hand than the
  * one included in your C library
  */
@@ -473,7 +467,14 @@ static inline uint32_t timeout_from_offered(uint32_t lease, uint32_t min)
 
 /** The maximum of DNS servers
  */
-#define DNS_MAX_SERVERS_PER_NETIF                 2
+#define DNS_MAX_SERVERS                 3
+
+/** ESP specific option only applicable if ESP_DNS=1
+ *
+ * The last server can be initialized automatically by defining
+ * FALLBACK_DNS_SERVER_ADDRESS(ipaddr), where 'ipaddr' is an 'ip_addr_t*'
+ */
+#define DNS_FALLBACK_SERVER_INDEX       (DNS_MAX_SERVERS - 1)
 
 /**
  * LWIP_DNS_SUPPORT_MDNS_QUERIES==1: Enable mDNS queries in hostname resolution.
@@ -806,7 +807,7 @@ static inline uint32_t timeout_from_offered(uint32_t lease, uint32_t min)
 /**
  * TCPIP_THREAD_NAME: The name assigned to the main tcpip thread.
  */
-#define TCPIP_THREAD_NAME              "lwip_thread"
+#define TCPIP_THREAD_NAME              "tiT"
 
 /**
  * TCPIP_THREAD_STACKSIZE: The stack size used by the main tcpip thread.
@@ -1495,23 +1496,6 @@ static inline uint32_t timeout_from_offered(uint32_t lease, uint32_t min)
 #define SNTP_UPDATE_DELAY                 (sntp_get_sync_interval())
 #define SNTP_SET_SYSTEM_TIME_US(sec, us)  (sntp_set_system_time(sec, us))
 #define SNTP_GET_SYSTEM_TIME(sec, us)     (sntp_get_system_time(&(sec), &(us)))
-#define SNTP_GETTIME_ERROR()			  (sntp_update_error())
-
-/*
-   --------------------------------------
-   ------------ SNMP options ------------
-   --------------------------------------
-*/
-
-#define LWIP_SNMP					1
-#define LWIP_SNMP_V3				1
-#define SNMP_USE_NETCONN			0
-#define SNMP_USE_RAW                1
-#define MIB2_STATS					1
-#define SNMP_MESSAGE_MAX_SIZE		(CONFIG_SNMP_MESSAGE_MAX_SIZE)
-#define SNMP_MAX_COMMUNITY_STR_LEN	(CONFIG_SNMP_MAX_COMMUNITY_STR_LEN)
-#define SNMP_MAX_TRUSTED_ADDRESSES	(CONFIG_SNMP_MAX_TRUSTED_ADDRESSES)
-#define SNMP_TRAPS_DESTINATIONS		(CONFIG_SNMP_MAX_TRUSTED_ADDRESSES)
 
 /*
    ---------------------------------------
