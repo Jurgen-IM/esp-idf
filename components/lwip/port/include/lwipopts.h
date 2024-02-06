@@ -1503,16 +1503,17 @@ static inline uint32_t timeout_from_offered(uint32_t lease, uint32_t min)
    --------------------------------------
 */
 
-#define LWIP_SNMP					1
-#define LWIP_SNMP_V3				1
-#define SNMP_USE_NETCONN			0
-#define SNMP_USE_RAW                1
-#define MIB2_STATS					1
-#define SNMP_MESSAGE_MAX_SIZE		(CONFIG_SNMP_MESSAGE_MAX_SIZE)
-#define SNMP_MAX_COMMUNITY_STR_LEN	(CONFIG_SNMP_MAX_COMMUNITY_STR_LEN)
-#define SNMP_MAX_TRUSTED_ADDRESSES	(CONFIG_SNMP_MAX_TRUSTED_ADDRESSES)
-#define SNMP_TRAPS_DESTINATIONS		(CONFIG_SNMP_MAX_TRUSTED_ADDRESSES)
-
+#define LWIP_SNMP					(CONFIG_SNMP_ENABLE)
+#if LWIP_SNMP
+   #define LWIP_SNMP_V3				1
+   #define SNMP_USE_NETCONN			0
+   #define SNMP_USE_RAW                1
+   #define MIB2_STATS					1
+   #define SNMP_MESSAGE_MAX_SIZE		(CONFIG_SNMP_MESSAGE_MAX_SIZE)
+   #define SNMP_MAX_COMMUNITY_STR_LEN	(CONFIG_SNMP_MAX_COMMUNITY_STR_LEN)
+   #define SNMP_MAX_TRUSTED_ADDRESSES	(CONFIG_SNMP_MAX_TRUSTED_ADDRESSES)
+   #define SNMP_TRAPS_DESTINATIONS		(CONFIG_SNMP_MAX_TRUSTED_ADDRESSES)
+#endif
 /*
    ---------------------------------------
    --------- ESP specific options --------

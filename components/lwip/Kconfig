@@ -405,6 +405,20 @@ menu "LWIP"
 
     endmenu # DHCPS
 
+    config LWIP_IPV4
+        bool "Enable IPv4"
+        default y
+        help
+            Enable IPv4 stack. If you want to use IPv6 only TCP/IP stack, disable this.
+
+    config LWIP_IPV6
+        bool "Enable IPv6"
+        default y
+        help
+            Enable IPv6 function. If not use IPv6 function, set this option to n.
+            If disabling LWIP_IPV6 then some other components (coap and asio) will
+            no longer be available.
+
     menuconfig LWIP_AUTOIP
         bool "Enable IPV4 Link-Local Addressing (AUTOIP)"
         default n
@@ -446,20 +460,6 @@ menu "LWIP"
         help
             If rate limiting self-assignment requests, wait this long between
             each request.
-
-    config LWIP_IPV4
-        bool "Enable IPv4"
-        default y
-        help
-            Enable IPv4 stack. If you want to use IPv6 only TCP/IP stack, disable this.
-
-    config LWIP_IPV6
-        bool "Enable IPv6"
-        default y
-        help
-            Enable IPv6 function. If not use IPv6 function, set this option to n.
-            If disabling LWIP_IPV6 then some other components (coap and asio) will
-            no longer be available.
 
     config LWIP_IPV6_AUTOCONFIG
         bool "Enable IPV6 stateless address autoconfiguration (SLAAC)"
@@ -1294,7 +1294,13 @@ menu "LWIP"
         depends on LWIP_DEBUG
         default n
 
-   menu "SNMP agent"			
+   menu "SNMP agent"
+        config SNMP_ENABLE
+            bool "Enable SNMP"
+            default y
+            help
+                SNMP Enable flag
+			
         config SNMP_LWIP_DEVICE_OID
             int "SNMP DEVICE OID number"
             default 20
