@@ -13,6 +13,9 @@
 
 #define TX_IDLE_BUFFER_SIZE (MBEDTLS_SSL_HEADER_LEN + CACHE_BUFFER_SIZE)
 
+#undef ESP_LOGD
+#define ESP_LOGD(TAG, ...)
+
 static const char *TAG = "Dynamic Impl";
 
 static void esp_mbedtls_set_buf_state(unsigned char *buf, esp_mbedtls_ssl_buf_states state)

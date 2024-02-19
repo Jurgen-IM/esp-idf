@@ -23,6 +23,9 @@ int __wrap_mbedtls_ssl_setup(mbedtls_ssl_context *ssl, const mbedtls_ssl_config 
 int __wrap_mbedtls_ssl_send_alert_message(mbedtls_ssl_context *ssl, unsigned char level, unsigned char message);
 int __wrap_mbedtls_ssl_close_notify(mbedtls_ssl_context *ssl);
 
+#undef ESP_LOGD
+#define ESP_LOGD(TAG, ...)
+
 static const char *TAG = "SSL TLS";
 
 static int tx_done(mbedtls_ssl_context *ssl)
