@@ -38,7 +38,7 @@ menu "ESP System Settings"
 
         config ESP_SYSTEM_PANIC_GDBSTUB
             bool "GDBStub on panic"
-            select ESP_GDBSTUB_ENABLED
+            depends on ESP_GDBSTUB_ENABLED
             help
                 Invoke gdbstub on the serial port, allowing for gdb to attach to it to do a postmortem
                 of the crash.
@@ -299,6 +299,9 @@ menu "ESP System Settings"
         default 0 if ESP_CONSOLE_UART_DEFAULT
         default 0 if ESP_CONSOLE_UART_CUSTOM_NUM_0
         default 1 if ESP_CONSOLE_UART_CUSTOM_NUM_1
+        default 0 if ESP_CONSOLE_NONE
+        # Temporarily workaround for serial_jtag usage.
+        default ESP_ROM_USB_SERIAL_DEVICE_NUM if ESP_CONSOLE_USB_SERIAL_JTAG
         default -1 if !ESP_CONSOLE_UART
 
     config ESP_CONSOLE_UART_TX_GPIO
@@ -562,6 +565,15 @@ menu "ESP System Settings"
         help
             This config allows to trigger a panic interrupt when Stack Pointer register goes out of allocated stack
             memory bounds.
+
+    config ESP_SYSTEM_BBPLL_RECALIB
+        bool "Re-calibration BBPLL at startup"
+        depends on IDF_TARGET_ESP32C2 || IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32C6 || IDF_TARGET_ESP32H2
+        default y
+        help
+            This configuration helps to address an BBPLL inaccurate issue when boot from certain bootloader version,
+            which may increase about the boot-up time by about 200 us. Disable this when your bootloader is built with
+            ESP-IDF version v5.2 and above.
 
 endmenu  # ESP System Settings
 

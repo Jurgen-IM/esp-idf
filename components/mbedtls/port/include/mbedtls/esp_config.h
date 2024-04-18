@@ -71,7 +71,7 @@
  * \def MBEDTLS_HAVE_TIME_DATE
  *
  * System has time.h and time(), gmtime() and the clock is correct.
- * The time needs to be correct (not necesarily very accurate, but at least
+ * The time needs to be correct (not necessarily very accurate, but at least
  * the date should be correct). This is used to verify the validity period of
  * X.509 certificates.
  *
@@ -155,6 +155,12 @@
 
 #ifdef CONFIG_MBEDTLS_HARDWARE_AES
 #define MBEDTLS_GCM_ALT
+#ifdef CONFIG_MBEDTLS_GCM_SUPPORT_NON_AES_CIPHER
+    /* Prefer hardware and fallback to software */
+    #define MBEDTLS_GCM_NON_AES_CIPHER_SOFT_FALLBACK
+#else
+    #undef MBEDTLS_GCM_NON_AES_CIPHER_SOFT_FALLBACK
+#endif
 #endif
 
 /* MBEDTLS_SHAxx_ALT to enable hardware SHA support
@@ -986,7 +992,7 @@
  * functions mbedtls_ssl_context_save() and mbedtls_ssl_context_load().
  *
  * This pair of functions allows one side of a connection to serialize the
- * context associated with the connection, then free or re-use that context
+ * context associated with the connection, then free or reuse that context
  * while the serialized state is persisted elsewhere, and finally deserialize
  * that state to a live context for resuming read/write operations on the
  * connection. From a protocol perspective, the state of the connection is
@@ -1484,7 +1490,7 @@
  * \def MBEDTLS_SSL_SESSION_TICKETS
  *
  * Enable support for RFC 5077 session tickets in SSL.
- * Client-side, provides full support for session tickets (maintainance of a
+ * Client-side, provides full support for session tickets (maintenance of a
  * session store remains the responsibility of the application, though).
  * Server-side, you also need to provide callbacks for writing and parsing
  * tickets, including authenticated encryption and key management. Example
@@ -2066,7 +2072,11 @@
  *
  * This module enables mbedtls_strerror().
  */
+#if CONFIG_MBEDTLS_ERROR_STRINGS
 #define MBEDTLS_ERROR_C
+#else
+#undef MBEDTLS_ERROR_C
+#endif
 
 /**
  * \def MBEDTLS_GCM_C
@@ -2116,7 +2126,7 @@
  *
  * Requires: MBEDTLS_MD_C
  *
- * Uncomment to enable the HMAC_DRBG random number geerator.
+ * Uncomment to enable the HMAC_DRBG random number generator.
  */
 #define MBEDTLS_HMAC_DRBG_C
 
@@ -2808,7 +2818,7 @@
 /* SSL options */
 #ifndef CONFIG_MBEDTLS_ASYMMETRIC_CONTENT_LEN
 
-#define MBEDTLS_SSL_MAX_CONTENT_LEN             CONFIG_MBEDTLS_SSL_MAX_CONTENT_LEN /**< Maxium fragment length in bytes, determines the size of each of the two internal I/O buffers */
+#define MBEDTLS_SSL_MAX_CONTENT_LEN             CONFIG_MBEDTLS_SSL_MAX_CONTENT_LEN /**< Maximum fragment length in bytes, determines the size of each of the two internal I/O buffers */
 
 #else
 

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -499,7 +499,7 @@ uint32_t IRAM_ATTR sleep_retention_get_modules(void)
 }
 
 #if SOC_PM_RETENTION_HAS_CLOCK_BUG
-void sleep_retention_do_extra_retention(bool backup_or_restore)
+void IRAM_ATTR sleep_retention_do_extra_retention(bool backup_or_restore)
 {
     if (s_retention.highpri < SLEEP_RETENTION_REGDMA_LINK_HIGHEST_PRIORITY ||
         s_retention.highpri > SLEEP_RETENTION_REGDMA_LINK_LOWEST_PRIORITY) {
@@ -515,7 +515,7 @@ void sleep_retention_do_extra_retention(bool backup_or_restore)
 }
 #endif
 
-#if SOC_PM_RETENTION_HAS_REGDMA_POWER_BUG
+#if SOC_PM_RETENTION_SW_TRIGGER_REGDMA
 void IRAM_ATTR sleep_retention_do_system_retention(bool backup_or_restore)
 {
     #define SYSTEM_LINK_NUM (0)
@@ -523,6 +523,8 @@ void IRAM_ATTR sleep_retention_do_system_retention(bool backup_or_restore)
         s_retention.highpri <= SLEEP_RETENTION_REGDMA_LINK_LOWEST_PRIORITY) {
         // Set extra linked list head pointer to hardware
         pau_regdma_set_system_link_addr(s_retention.lists[s_retention.highpri].entries[SYSTEM_LINK_NUM]);
+        // When PD TOP, we need to prevent the PMU from triggering the REGDMA backup, because REGDMA will power off
+        pmu_sleep_disable_regdma_backup();
         if (backup_or_restore) {
             pau_regdma_trigger_system_link_backup();
         } else {

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: Apache-2.0
-
 """
 Pytest Related Constants. Don't import third-party packages here.
 """
@@ -42,7 +41,7 @@ ENV_MARKERS = {
     # single-dut markers
     'generic': 'tests should be run on generic runners',
     'flash_suspend': 'support flash suspend feature',
-    'ip101': 'connected via wired 10/100M ethernet',
+    'eth_ip101': 'connected via wired 10/100M ethernet',
     'eth_lan8720': 'connected via LAN8720 ethernet transceiver',
     'eth_rtl8201': 'connected via RTL8201 ethernet transceiver',
     'eth_ksz8041': 'connected via KSZ8041 ethernet transceiver',
@@ -106,6 +105,7 @@ ENV_MARKERS = {
     'generic_multi_device': 'generic multiple devices whose corresponding gpio pins are connected to each other.',
     'twai_network': 'multiple runners form a TWAI network.',
     'sdio_master_slave': 'Test sdio multi board.',
+    'usj_device': 'Test usb_serial_jtag and usb_serial_jtag is used as serial only (not console)'
 }
 
 

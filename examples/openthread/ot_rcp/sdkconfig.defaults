@@ -30,7 +30,6 @@ CONFIG_LOG_BOOTLOADER_LEVEL_ERROR=y
 CONFIG_LOG_BOOTLOADER_LEVEL_INFO=n
 # End of deprecated options
 
-
 #
 # Configurations for optimizing the size of ot_rcp firmware
 #

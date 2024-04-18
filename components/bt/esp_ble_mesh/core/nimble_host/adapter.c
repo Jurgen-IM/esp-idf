@@ -81,14 +81,15 @@ static struct bt_mesh_conn_cb *bt_mesh_gatts_conn_cb;
 static uint8_t bt_mesh_gatts_addr[6];
 #endif /* CONFIG_BLE_MESH_NODE */
 
+static bool g_host_init = false;
+
 int bt_mesh_host_init(void)
 {
-    static bool init = false;
     int rc;
 
-    if (init == true) {
+    if (g_host_init  == true) {
         BT_WARN("Already initialized host for mesh!");
-        return 0;
+        return -EALREADY;
     }
 
     rc = btc_init();
@@ -102,7 +103,30 @@ int bt_mesh_host_init(void)
     }
 
     osi_alarm_init();
-    init = true;
+    g_host_init  = true;
+
+    return 0;
+}
+
+int bt_mesh_host_deinit(void)
+{
+    int rc;
+
+    if (g_host_init == false) {
+        return -EALREADY;
+    }
+
+    osi_alarm_deinit();
+
+    rc = osi_alarm_delete_mux();
+    if (rc != 0) {
+        return -1;
+    }
+
+    btc_deinit();
+
+    g_host_init = false;
+
     return 0;
 }
 
@@ -895,7 +919,7 @@ int bt_mesh_ble_adv_start(const struct bt_mesh_ble_adv_param *param,
         break;
     case BLE_MESH_ADV_NONCONN_IND:
         adv_params.conn_mode = BLE_GAP_CONN_MODE_NON;
-        adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN;
+        adv_params.disc_mode = BLE_GAP_DISC_MODE_NON;
         break;
     case BLE_MESH_ADV_DIRECT_IND_LOW_DUTY:
         adv_params.conn_mode = BLE_GAP_CONN_MODE_DIR;

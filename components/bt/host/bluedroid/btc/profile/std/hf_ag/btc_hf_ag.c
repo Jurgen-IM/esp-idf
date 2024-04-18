@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2015-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -68,7 +68,7 @@ static UINT16 btc_max_hf_clients = BTC_HF_NUM_CB;
 #if HFP_DYNAMIC_MEMORY == FALSE
 static hf_local_param_t hf_local_param[BTC_HF_NUM_CB];
 #else
-static hf_local_param_t *hf_local_param;
+hf_local_param_t *hf_local_param_ptr = NULL;
 #endif
 
 #if (BTM_WBS_INCLUDED == TRUE)
@@ -317,6 +317,7 @@ bt_status_t btc_hf_init(void)
     int idx = 0;
 
     BTC_TRACE_DEBUG("%s - max_hf_clients=%d", __func__, btc_max_hf_clients);
+
     /* Invoke the enable service API to the core to set the appropriate service_id
      * Internally, the HSP_SERVICE_ID shall also be enabled if HFP is enabled (phone)
      * othwerwise only HSP is enabled (tablet)*/
@@ -345,13 +346,16 @@ void btc_hf_deinit(void)
 {
     BTC_TRACE_EVENT("%s", __FUNCTION__);
     btc_dm_disable_service(BTA_HFP_SERVICE_ID);
+    hf_local_param[0].btc_hf_cb.initialized = false;
+}
+
+static void btc_hf_cb_release(void)
+{
 #if HFP_DYNAMIC_MEMORY == TRUE
     if (hf_local_param) {
         osi_free(hf_local_param);
         hf_local_param = NULL;
     }
-#else
-    hf_local_param[0].btc_hf_cb.initialized = false;
 #endif
 }
 
@@ -1251,9 +1255,12 @@ void btc_hf_cb_handler(btc_msg_t *msg)
 
     switch (event) {
         case BTA_AG_ENABLE_EVT:
-        case BTA_AG_DISABLE_EVT:
             break;
-
+        case BTA_AG_DISABLE_EVT:
+        {
+            btc_hf_cb_release();
+            break;
+        }
         case BTA_AG_REGISTER_EVT:
         {
             idx = p_data->hdr.handle - 1;

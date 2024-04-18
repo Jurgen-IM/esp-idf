@@ -45,6 +45,10 @@ typedef enum sleep_retention_module_bitmap {
     SLEEP_RETENTION_MODULE_IOMUX        = BIT(21),
     SLEEP_RETENTION_MODULE_SPIMEM       = BIT(22),
     SLEEP_RETENTION_MODULE_SYSTIMER     = BIT(23),
+    SLEEP_RETENTION_MODULE_GDMA_CH0     = BIT(24),
+    SLEEP_RETENTION_MODULE_GDMA_CH1     = BIT(25),
+    SLEEP_RETENTION_MODULE_GDMA_CH2     = BIT(26),
+
 
     SLEEP_RETENTION_MODULE_ALL          = (uint32_t)-1
 } sleep_retention_module_bitmap_t;
@@ -122,7 +126,7 @@ void sleep_retention_do_extra_retention(bool backup_or_restore);
  */
 uint32_t sleep_retention_get_modules(void);
 
-#if SOC_PM_RETENTION_HAS_REGDMA_POWER_BUG
+#if SOC_PM_RETENTION_SW_TRIGGER_REGDMA
 /**
  * @brief Software trigger REGDMA to do system linked list retention
  *

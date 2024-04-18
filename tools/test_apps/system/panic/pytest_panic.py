@@ -1,8 +1,9 @@
-# SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
+# SPDX-FileCopyrightText: 2022-2024 Espressif Systems (Shanghai) CO LTD
 # SPDX-License-Identifier: CC0-1.0
-
 import re
-from typing import List, Optional, Union
+from typing import List
+from typing import Optional
+from typing import Union
 
 import pexpect
 import pytest
@@ -25,7 +26,7 @@ TARGETS_TESTED = [
 # with some exceptions.
 CONFIGS = [
     pytest.param('coredump_flash_bin_crc', marks=TARGETS_TESTED),
-    pytest.param('coredump_flash_elf_sha', marks=[pytest.mark.esp32]),  # sha256 only supported on esp32, IDF-1820
+    pytest.param('coredump_flash_elf_sha', marks=TARGETS_TESTED),
     pytest.param('coredump_uart_bin_crc', marks=TARGETS_TESTED),
     pytest.param('coredump_uart_elf_crc', marks=TARGETS_TESTED),
     pytest.param('gdbstub', marks=TARGETS_TESTED),
@@ -36,7 +37,7 @@ CONFIGS = [
 TARGETS_DUAL_CORE = [pytest.mark.esp32, pytest.mark.esp32s3]
 CONFIGS_DUAL_CORE = [
     pytest.param('coredump_flash_bin_crc', marks=TARGETS_DUAL_CORE),
-    pytest.param('coredump_flash_elf_sha', marks=[pytest.mark.esp32]),  # sha256 only supported on esp32, IDF-1820
+    pytest.param('coredump_flash_elf_sha', marks=TARGETS_DUAL_CORE),
     pytest.param('coredump_uart_bin_crc', marks=TARGETS_DUAL_CORE),
     pytest.param('coredump_uart_elf_crc', marks=TARGETS_DUAL_CORE),
     pytest.param('gdbstub', marks=TARGETS_DUAL_CORE),
@@ -577,6 +578,11 @@ CONFIGS_MEMPROT_RTC_SLOW_MEM = [
     pytest.param('memprot_esp32s2', marks=[pytest.mark.esp32s2]),
 ]
 
+CONFIGS_MEMPROT_FLASH_IDROM = [
+    pytest.param('memprot_esp32c6', marks=[pytest.mark.esp32c6]),
+    pytest.param('memprot_esp32h2', marks=[pytest.mark.esp32h2])
+]
+
 
 @pytest.mark.parametrize('config', CONFIGS_MEMPROT_DCACHE, indirect=True)
 @pytest.mark.generic
@@ -813,6 +819,33 @@ def test_rtc_slow_reg2_execute_violation(dut: PanicTestDut, test_func_name: str)
     dut.expect_cpu_reset()
 
 
+@pytest.mark.parametrize('config', CONFIGS_MEMPROT_FLASH_IDROM, indirect=True)
+@pytest.mark.generic
+def test_irom_reg_write_violation(dut: PanicTestDut, test_func_name: str) -> None:
+    dut.run_test_func(test_func_name)
+    dut.expect_gme('Store access fault')
+    dut.expect_reg_dump(0)
+    dut.expect_cpu_reset()
+
+
+@pytest.mark.parametrize('config', CONFIGS_MEMPROT_FLASH_IDROM, indirect=True)
+@pytest.mark.generic
+def test_drom_reg_write_violation(dut: PanicTestDut, test_func_name: str) -> None:
+    dut.run_test_func(test_func_name)
+    dut.expect_gme('Store access fault')
+    dut.expect_reg_dump(0)
+    dut.expect_cpu_reset()
+
+
+@pytest.mark.parametrize('config', CONFIGS_MEMPROT_FLASH_IDROM, indirect=True)
+@pytest.mark.generic
+def test_drom_reg_execute_violation(dut: PanicTestDut, test_func_name: str) -> None:
+    dut.run_test_func(test_func_name)
+    dut.expect_gme('Instruction access fault')
+    dut.expect_reg_dump(0)
+    dut.expect_cpu_reset()
+
+
 @pytest.mark.esp32
 @pytest.mark.parametrize('config', ['gdbstub_coredump'], indirect=True)
 def test_gdbstub_coredump(dut: PanicTestDut) -> None:
@@ -834,7 +867,7 @@ def test_gdbstub_coredump(dut: PanicTestDut) -> None:
 def test_hw_stack_guard_cpu0(dut: PanicTestDut, config: str, test_func_name: str) -> None:
     dut.run_test_func(test_func_name)
     dut.expect_exact('Guru Meditation Error: Core  0 panic\'ed (Stack protection fault).')
-    dut.expect_none('ASSIST_DEBUG is not triggered BUT interrupt occured!')
+    dut.expect_none('ASSIST_DEBUG is not triggered BUT interrupt occurred!')
     dut.expect(r'Detected in task(.*)at 0x')
     dut.expect_exact('Stack pointer: 0x')
     dut.expect(r'Stack bounds: 0x(.*) - 0x')

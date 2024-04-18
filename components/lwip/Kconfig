@@ -130,7 +130,8 @@ menu "LWIP"
         depends on LWIP_ND6
         help
             This option is used to set the the router flag for the NA packets.
-            When enabled, the router flag in NA packet will always set to 1, otherwise, never set router flag for NA packets.
+            When enabled, the router flag in NA packet will always set to 1,
+            otherwise, never set router flag for NA packets.
 
     config LWIP_MAX_SOCKETS
         int "Max number of open sockets"
@@ -195,6 +196,13 @@ menu "LWIP"
         help
             Enabling this option allows checking for the destination address
             of a received IPv4 Packet.
+
+    config LWIP_IP_DEFAULT_TTL
+        int "The value for Time-To-Live used by transport layers"
+        range 1 255
+        default 64
+        help
+            Set value for Time-To-Live used by transport layers.
 
     config LWIP_IP4_FRAG
         bool "Enable fragment outgoing IP4 packets"
@@ -686,7 +694,8 @@ menu "LWIP"
             int "The maximum number of pbufs queued on OOSEQ per pcb"
             depends on LWIP_TCP_QUEUE_OOSEQ
             range 0 12
-            default 4
+            default 4 if !SPIRAM_TRY_ALLOCATE_WIFI_LWIP
+            default 0 if SPIRAM_TRY_ALLOCATE_WIFI_LWIP
             help
                 If LWIP_TCP_OOSEQ_MAX_PBUFS = 0, TCP will not control the number of OOSEQ pbufs.
 
@@ -695,11 +704,14 @@ menu "LWIP"
                 cause Wi-Fi/Ethernet fail to release RX buffer in time.
                 It is possible that all RX buffers for MAC layer are used by OOSEQ.
 
-                Control the number of out-of-order pbufs to ensure that the MAC layer has enough RX buffer to receive packets.
+                Control the number of out-of-order pbufs to ensure
+                that the MAC layer has enough RX buffer to receive packets.
 
-                In the Wi-Fi scenario, recommended OOSEQ PBUFS Range: 0 <= TCP_OOSEQ_MAX_PBUFS <= CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM/(MAX_TCP_NUMBER + 1)
+                In the Wi-Fi scenario, recommended OOSEQ PBUFS Range:
+                0 <= TCP_OOSEQ_MAX_PBUFS <= CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM/(MAX_TCP_NUMBER + 1)
 
-                In the Ethernet scenario,recommended Ethernet OOSEQ PBUFS Range: 0 <= TCP_OOSEQ_MAX_PBUFS <= CONFIG_ETH_DMA_RX_BUFFER_NUM/(MAX_TCP_NUMBER + 1)
+                In the Ethernet scenario,recommended Ethernet OOSEQ PBUFS Range:
+                0 <= TCP_OOSEQ_MAX_PBUFS <= CONFIG_ETH_DMA_RX_BUFFER_NUM/(MAX_TCP_NUMBER + 1)
 
                 Within the recommended value range, the larger the value, the better the performance.
 
@@ -1035,6 +1047,33 @@ menu "LWIP"
                 (SNTPv4 RFC 4330 enforces a minimum update time of 15 seconds).
 
     endmenu # SNTP
+
+    menu "DNS"
+
+        config LWIP_DNS_MAX_SERVERS
+            int "Maximum number of DNS servers"
+            default 3
+            range 1 4
+            help
+                Set maximum number of DNS servers.
+                If fallback DNS servers are supported,
+                the number of DNS servers needs to be greater than or equal to 3.
+
+        config LWIP_FALLBACK_DNS_SERVER_SUPPORT
+            bool "Enable DNS fallback server support"
+            default n
+            depends on LWIP_DNS_MAX_SERVERS >= 3
+            help
+                Enable this feature to support DNS fallback server.
+
+        config LWIP_FALLBACK_DNS_SERVER_ADDRESS
+            string "DNS fallback server address"
+            default "114.114.114.114"
+            depends on LWIP_FALLBACK_DNS_SERVER_SUPPORT
+            help
+                This option allows you to config dns fallback server address.
+
+    endmenu # DNS
 
     config LWIP_BRIDGEIF_MAX_PORTS
         int "Maximum number of bridge ports"

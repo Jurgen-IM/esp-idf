@@ -10,6 +10,7 @@
 #include "btc/btc_common.h"
 #include "btc/btc_dm.h"
 #include "btc/btc_main.h"
+#include "btc/btc_util.h"
 #include "common/bt_trace.h"
 #include "common/bt_target.h"
 #include "btc/btc_storage.h"
@@ -413,6 +414,7 @@ static void btc_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     msg->pid = BTC_PID_GAP_BT;
     msg->act = BTC_GAP_BT_AUTH_CMPL_EVT;
     param.auth_cmpl.stat = status;
+    param.auth_cmpl.lk_type = p_auth_cmpl->key_type;
     memcpy(param.auth_cmpl.bda, p_auth_cmpl->bd_addr, ESP_BD_ADDR_LEN);
     memcpy(param.auth_cmpl.device_name, p_auth_cmpl->bd_name, ESP_BT_GAP_MAX_BDNAME_LEN + 1);
     memcpy(msg->arg, &param, sizeof(esp_bt_gap_cb_param_t));
@@ -426,6 +428,34 @@ static void btc_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
 
 #endif /// BTC_GAP_BT_INCLUDED == TRUE
     (void) status;
+}
+
+static void btc_dm_enc_chg_evt (tBTA_DM_ENC_CHG *p_enc_chg)
+{
+#if (BTC_GAP_BT_INCLUDED == TRUE)
+    esp_bt_gap_cb_param_t param;
+    bt_status_t ret;
+    btc_msg_t *msg;
+
+    msg = (btc_msg_t *)osi_malloc(sizeof(btc_msg_t) + sizeof(esp_bt_gap_cb_param_t));
+    if (msg == NULL) {
+        BTC_TRACE_ERROR("%s malloc fail", __func__);
+        return;
+    }
+    msg->sig = BTC_SIG_API_CB;
+    msg->pid = BTC_PID_GAP_BT;
+    msg->act = BTC_GAP_BT_ENC_CHG_EVT;
+    param.enc_chg.enc_mode = p_enc_chg->enc_mode;
+    memcpy(param.enc_chg.bda, p_enc_chg->bd_addr, ESP_BD_ADDR_LEN);
+    memcpy(msg->arg, &param, sizeof(esp_bt_gap_cb_param_t));
+
+    ret = btc_inter_profile_call(msg);
+    osi_free(msg);
+
+    if (ret != BT_STATUS_SUCCESS) {
+        BTC_TRACE_ERROR("%s btc_inter_profile_call failed\n", __func__);
+    }
+#endif /// BTC_GAP_BT_INCLUDED == TRUE
 }
 
 static void btc_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
@@ -688,14 +718,14 @@ static void btc_dm_acl_link_stat(tBTA_DM_ACL_LINK_STAT *p_acl_link_stat)
     switch (p_acl_link_stat->event) {
     case BTA_ACL_LINK_STAT_CONN_CMPL: {
         event = ESP_BT_GAP_ACL_CONN_CMPL_STAT_EVT;
-        param.acl_conn_cmpl_stat.stat = p_acl_link_stat->link_act.conn_cmpl.status | ESP_BT_STATUS_BASE_FOR_HCI_ERR;
+        param.acl_conn_cmpl_stat.stat = btc_hci_to_esp_status(p_acl_link_stat->link_act.conn_cmpl.status);
         param.acl_conn_cmpl_stat.handle = p_acl_link_stat->link_act.conn_cmpl.handle;
         memcpy(param.acl_conn_cmpl_stat.bda, p_acl_link_stat->link_act.conn_cmpl.bd_addr, ESP_BD_ADDR_LEN);
         break;
     }
     case BTA_ACL_LINK_STAT_DISCONN_CMPL: {
         event = ESP_BT_GAP_ACL_DISCONN_CMPL_STAT_EVT;
-        param.acl_disconn_cmpl_stat.reason = p_acl_link_stat->link_act.disconn_cmpl.reason | ESP_BT_STATUS_BASE_FOR_HCI_ERR;
+        param.acl_disconn_cmpl_stat.reason = btc_hci_to_esp_status(p_acl_link_stat->link_act.disconn_cmpl.reason);
         param.acl_disconn_cmpl_stat.handle = p_acl_link_stat->link_act.disconn_cmpl.handle;
         memcpy(param.acl_disconn_cmpl_stat.bda, p_acl_link_stat->link_act.disconn_cmpl.bd_addr, ESP_BD_ADDR_LEN);
         break;
@@ -706,6 +736,7 @@ static void btc_dm_acl_link_stat(tBTA_DM_ACL_LINK_STAT *p_acl_link_stat)
     }
     }
 
+#if (SMP_INCLUDED == TRUE)
     if (p_acl_link_stat->event == BTA_ACL_LINK_STAT_CONN_CMPL &&
         p_acl_link_stat->link_act.conn_cmpl.status == HCI_SUCCESS) {
         memcpy(bt_addr.address, p_acl_link_stat->link_act.conn_cmpl.bd_addr, sizeof(bt_addr.address));
@@ -716,7 +747,7 @@ static void btc_dm_acl_link_stat(tBTA_DM_ACL_LINK_STAT *p_acl_link_stat)
                             bt_addr.address[4], bt_addr.address[5]);
         }
     }
-
+#endif  ///SMP_INCLUDED == TRUE
     esp_bt_gap_cb_t cb = (esp_bt_gap_cb_t)btc_profile_cb_get(BTC_PID_GAP_BT);
     if (cb) {
         cb(event, &param);
@@ -780,6 +811,9 @@ void btc_dm_sec_cb_handler(btc_msg_t *msg)
         break;
     case BTA_DM_AUTH_CMPL_EVT:
         btc_dm_auth_cmpl_evt(&p_data->auth_cmpl);
+        break;
+    case BTA_DM_ENC_CHG_EVT:
+        btc_dm_enc_chg_evt(&p_data->enc_chg);
         break;
     case BTA_DM_BOND_CANCEL_CMPL_EVT:
         BTC_TRACE_DEBUG("BTA_DM_BOND_CANCEL_CMPL_EVT");

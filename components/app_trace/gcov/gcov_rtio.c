@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2017-2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2017-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -16,6 +16,7 @@
 #include "esp_freertos_hooks.h"
 #include "esp_private/dbg_stubs.h"
 #include "esp_ipc.h"
+#include "esp_attr.h"
 #include "hal/wdt_hal.h"
 #if CONFIG_IDF_TARGET_ESP32
 #include "esp32/rom/libc_stubs.h"
@@ -80,6 +81,7 @@ void gcov_create_task(void *arg)
 		(void *)&s_gcov_task_running, configMAX_PRIORITIES - 1, NULL, 0);
 }
 
+static IRAM_ATTR
 void gcov_create_task_tick_hook(void)
 {
     extern esp_err_t esp_ipc_start_gcov_from_isr(uint32_t cpu_id, esp_ipc_func_t func, void* arg);
@@ -106,12 +108,16 @@ static int esp_dbg_stub_gcov_entry(void)
 
 void gcov_rtio_init(void)
 {
-    uint32_t capabilities = 0;
+    uint32_t stub_entry = 0;
     ESP_EARLY_LOGV(TAG, "%s", __FUNCTION__);
-    esp_dbg_stub_entry_set(ESP_DBG_STUB_ENTRY_GCOV, (uint32_t)&esp_dbg_stub_gcov_entry);
-    if (esp_dbg_stub_entry_get(ESP_DBG_STUB_ENTRY_CAPABILITIES, &capabilities) == ESP_OK) {
-        esp_dbg_stub_entry_set(ESP_DBG_STUB_ENTRY_CAPABILITIES, capabilities | ESP_DBG_STUB_CAP_GCOV_TASK);
+    assert(esp_dbg_stub_entry_get(ESP_DBG_STUB_ENTRY_GCOV, &stub_entry) == ESP_OK);
+    if (stub_entry != 0) {
+        /* "__gcov_init()" can be called several times. We must avoid multiple tick hook registration */
+        return;
     }
+    esp_dbg_stub_entry_set(ESP_DBG_STUB_ENTRY_GCOV, (uint32_t)&esp_dbg_stub_gcov_entry);
+    assert(esp_dbg_stub_entry_get(ESP_DBG_STUB_ENTRY_CAPABILITIES, &stub_entry) == ESP_OK);
+    esp_dbg_stub_entry_set(ESP_DBG_STUB_ENTRY_CAPABILITIES, stub_entry | ESP_DBG_STUB_CAP_GCOV_TASK);
     esp_register_freertos_tick_hook(gcov_create_task_tick_hook);
 }
 

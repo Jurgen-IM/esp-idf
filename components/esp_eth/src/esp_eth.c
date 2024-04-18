@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2019-2022 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2019-2023 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -229,7 +229,7 @@ esp_err_t esp_eth_driver_install(const esp_eth_config_t *config, esp_eth_handle_
     ESP_GOTO_ON_ERROR(phy->init(phy), err, TAG, "init phy failed");
     // get default status of PHY autonegotiation (ultimately may also indicate if it is supported)
     ESP_GOTO_ON_ERROR(phy->autonego_ctrl(phy, ESP_ETH_PHY_AUTONEGO_G_STAT, &eth_driver->auto_nego_en),
-                        err, TAG, "get autonegotiation status failed");
+                      err, TAG, "get autonegotiation status failed");
     ESP_LOGD(TAG, "new ethernet driver @%p", eth_driver);
     *out_hdl = eth_driver;
 
@@ -303,6 +303,7 @@ esp_err_t esp_eth_stop(esp_eth_handle_t hdl)
     esp_err_t ret = ESP_OK;
     esp_eth_driver_t *eth_driver = (esp_eth_driver_t *)hdl;
     ESP_GOTO_ON_FALSE(eth_driver, ESP_ERR_INVALID_ARG, err, TAG, "ethernet driver handle can't be null");
+    esp_eth_phy_t *phy = eth_driver->phy;
     esp_eth_mac_t *mac = eth_driver->mac;
     // check if driver has started
     esp_eth_fsm_t expected_fsm = ESP_ETH_FSM_START;
@@ -312,10 +313,16 @@ esp_err_t esp_eth_stop(esp_eth_handle_t hdl)
 
     eth_link_t expected_link = ETH_LINK_UP;
     if (atomic_compare_exchange_strong(&eth_driver->link, &expected_link, ETH_LINK_DOWN)){
-        // MAC is stopped by setting link down
-        ESP_GOTO_ON_ERROR(mac->set_link(mac, ETH_LINK_DOWN), err, TAG, "ethernet mac set link failed");
-        ESP_GOTO_ON_ERROR(esp_event_post(ETH_EVENT, ETHERNET_EVENT_DISCONNECTED, &eth_driver, sizeof(esp_eth_driver_t *), 0), err,
+        // to ensure backwards compatibility, check if set_link function is not NULL
+        if (phy->set_link != NULL) {
+            // MAC is stopped by setting link down at PHY layer
+            ESP_GOTO_ON_ERROR(phy->set_link(phy, ETH_LINK_DOWN), err, TAG, "ethernet phy reset link failed");
+        } else {
+            // MAC is stopped by setting link down at MAC layer
+            ESP_GOTO_ON_ERROR(mac->set_link(mac, ETH_LINK_DOWN), err, TAG, "ethernet mac set link failed");
+            ESP_GOTO_ON_ERROR(esp_event_post(ETH_EVENT, ETHERNET_EVENT_DISCONNECTED, &eth_driver, sizeof(esp_eth_driver_t *), 0), err,
                             TAG, "send ETHERNET_EVENT_DISCONNECTED event failed");
+        }
     }
 
     ESP_GOTO_ON_ERROR(esp_event_post(ETH_EVENT, ETHERNET_EVENT_STOP, &eth_driver, sizeof(esp_eth_driver_t *), 0),
@@ -466,8 +473,27 @@ esp_err_t esp_eth_ioctl(esp_eth_handle_t hdl, esp_eth_io_cmd_t cmd, void *data)
     case ETH_CMD_S_PHY_LOOPBACK:
         ESP_GOTO_ON_FALSE(data, ESP_ERR_INVALID_ARG, err, TAG, "can't set loopback to null");
         ESP_GOTO_ON_ERROR(phy->loopback(phy, *(bool *)data), err, TAG, "configuration of phy loopback mode failed");
-
         break;
+    case ETH_CMD_READ_PHY_REG: {
+        uint32_t phy_addr;
+        ESP_GOTO_ON_FALSE(data, ESP_ERR_INVALID_ARG, err, TAG, "invalid register read/write info");
+        esp_eth_phy_reg_rw_data_t *phy_r_data = (esp_eth_phy_reg_rw_data_t *)data;
+        ESP_GOTO_ON_FALSE(phy_r_data->reg_value_p, ESP_ERR_INVALID_ARG, err, TAG, "can't read registers to null");
+        ESP_GOTO_ON_ERROR(phy->get_addr(phy, &phy_addr), err, TAG, "get phy address failed");
+        ESP_GOTO_ON_ERROR(eth_driver->mediator.phy_reg_read(&eth_driver->mediator,
+                          phy_addr, phy_r_data->reg_addr, phy_r_data->reg_value_p), err, TAG, "failed to read PHY register");
+    }
+    break;
+    case ETH_CMD_WRITE_PHY_REG: {
+        uint32_t phy_addr;
+        ESP_GOTO_ON_FALSE(data, ESP_ERR_INVALID_ARG, err, TAG, "invalid register read/write info");
+        esp_eth_phy_reg_rw_data_t *phy_w_data = (esp_eth_phy_reg_rw_data_t *)data;
+        ESP_GOTO_ON_FALSE(phy_w_data->reg_value_p, ESP_ERR_INVALID_ARG, err, TAG, "can't write registers from null");
+        ESP_GOTO_ON_ERROR(phy->get_addr(phy, &phy_addr), err, TAG, "get phy address failed");
+        ESP_GOTO_ON_ERROR(eth_driver->mediator.phy_reg_write(&eth_driver->mediator,
+                          phy_addr, phy_w_data->reg_addr, *(phy_w_data->reg_value_p)), err, TAG, "failed to write PHY register");
+    }
+    break;
     default:
         if (phy->custom_ioctl != NULL && cmd >= ETH_CMD_CUSTOM_PHY_CMDS) {
             ret = phy->custom_ioctl(phy, cmd, data);

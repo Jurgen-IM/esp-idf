@@ -1,12 +1,12 @@
 /*
- * SPDX-FileCopyrightText: 2023 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2023-2024 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 esf_buf_alloc = 0x400015bc;
 esf_buf_alloc_dynamic = 0x400015c0;
 esf_buf_recycle = 0x400015c4;
-hal_mac_tx_set_ppdu = 0x400015d4;
+/*hal_mac_tx_set_ppdu = 0x400015d4;*/
 ic_mac_deinit = 0x400015dc;
 lmacDiscardMSDU = 0x400015f4;
 /*lmacSetTxFrame = 0x40001628;*/
@@ -32,14 +32,14 @@ wDevCheckBlockError = 0x400017b4;
 /* wDev_IndicateFrame = 0x400017c8;*/
 wDev_ProcessFiq = 0x400017f0;
 wDev_ProcessRxSucData = 0x400017f4;
-ppProcTxDone = 0x40001804;
+/*ppProcTxDone = 0x40001804;*/
 pm_tx_data_done_process = 0x40001808;
 ppMapWaitTxq = 0x40001810;
-ieee80211_encap_esfbuf = 0x4000185c;
-sta_input = 0x40001870;
+/*ieee80211_encap_esfbuf = 0x4000185c;*/
+/*sta_input = 0x40001870;*/
 ieee80211_crypto_decap = 0x4000189c;
 ieee80211_decap = 0x400018a0;
-coex_core_timer_idx_get = 0x400018d0;
+/*coex_core_timer_idx_get = 0x400018d0;*/
 rom1_chip_i2c_readReg = 0x40001924;
 rom1_chip_i2c_writeReg = 0x40001928;
 rom_index_to_txbbgain = 0x40001964;
@@ -107,7 +107,6 @@ r_lld_con_terminate_max_evt_update = 0x40001c5c;
 r_llc_pref_param_compute_eco = 0x40001ce8;
 r_llc_hci_con_upd_info_send_eco = 0x40001cec;
 r_llc_rem_encrypt_proc_continue_eco = 0x40001cf0;
-r_llc_llcp_send_eco = 0x40001cf4;
 r_llc_start_eco = 0x40001cf8;
 r_lld_ext_adv_dynamic_aux_pti_process_eco = 0x40001cfc;
 r_lld_adv_start_eco = 0x40001d04;
@@ -117,7 +116,6 @@ r_lld_con_start_eco = 0x40001d10;
 r_lld_con_frm_isr_eco = 0x40001d14;
 r_lld_con_tx_eco = 0x40001d18;
 r_lld_scan_evt_start_cbk_eco = 0x40001d20;
-r_lld_scan_start_eco = 0x40001d24;
 r_lld_ext_scan_dynamic_pti_process_eco = 0x40001d28;
 r_lld_scan_frm_eof_isr_eco = 0x40001d2c;
 r_lld_sync_start_eco = 0x40001d30;
@@ -134,7 +132,6 @@ r_llc_hci_command_handler_search = 0x40001d58;
 r_llc_llcp_pdu_handler_get_overwrite = 0x40001d5c;
 r_llc_llcp_pdu_handler_pre = 0x40001d60;
 r_llc_llcp_pdu_handler_end = 0x40001d64;
-r_llc_llcp_channel_map_ind_ack = 0x40001d68;
 r_llc_con_conflict_check = 0x40001d6c;
 r_sch_prog_hw_reset_try = 0x40001d70;
 r_sch_prog_et_state_reset = 0x40001d74;
@@ -143,15 +140,9 @@ r_sch_plan_conflict_check = 0x40001d7c;
 r_rwble_isr_hw_fixed = 0x40001d80;
 r_bt_bb_recorrect_is_dead = 0x40001d84;
 r_bt_bb_restart_hw_recorrect = 0x40001d88;
-r_btdm_task_post_impl = 0x40001d8c;
-r_btdm_task_post_from_isr_impl = 0x40001d90;
-r_btdm_vnd_offload_post_from_isr = 0x40001d94;
-r_btdm_vnd_offload_post = 0x40001d98;
-r_btdm_vnd_offload_process = 0x40001d9c;
 r_ke_task_handler_pre = 0x40001da0;
 r_ke_task_handler_end = 0x40001da4;
 r_ke_task_handler_get_overwrite = 0x40001da8;
-r_lld_scan_try_sched_eco = 0x40001dac;
 r_lld_scan_frm_skip_isr_eco = 0x40001db0;
 r_lld_ext_scan_dynamic_pti_reset = 0x40001db4;
 r_llc_rem_phy_upd_proc_continue_eco = 0x40001db8;
@@ -199,7 +190,6 @@ r_lld_scan_process_pkt_rx_adv_rep = 0x40001284;
 r_register_esp_vendor_cmd_handler = 0x40001400;
 r_rf_txpwr_cs_get = 0x40001428;
 r_rf_txpwr_dbm_get = 0x4000142c;
-r_rwble_isr = 0x40001464;
 r_sch_arb_event_start_isr = 0x400014f8;
 r_sch_plan_set = 0x40001534;
 r_sch_prog_end_isr = 0x40001538;
@@ -207,7 +197,6 @@ r_lld_adv_ext_chain_scannable_construct = 0x40001b58;
 
 r_lld_scan_process_pkt_rx = 0x40001280;
 r_llm_le_features_get = 0x400013b0;
-r_lld_adv_ext_chain_none_construct = 0x40001b50;
 
 /* ble functions rename */
 r_lld_init_start_hack = 0x400011a4;
@@ -220,6 +209,12 @@ r_lld_res_list_rem = 0x40004680;
 r_lld_adv_start_hook = 0x40001c80;
 r_lld_con_evt_start_cbk_eco = 0x40001d1c;
 r_lld_con_tx_prog_new_packet = 0x40001b74;
+r_lld_adv_ext_chain_none_construct = 0x40001b50;
+r_llc_llcp_send_eco = 0x40001cf4;
+r_llc_llcp_channel_map_ind_ack = 0x40001d68;
+r_rwble_isr = 0x40001464;
+r_lld_scan_start_eco = 0x40001d24;
+r_lld_scan_try_sched_eco = 0x40001dac;
 */
 
 

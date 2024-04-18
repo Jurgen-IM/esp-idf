@@ -639,6 +639,10 @@ config SOC_UART_SUPPORT_FSM_TX_WAIT_SEND
     bool
     default y
 
+config SOC_SUPPORT_COEXISTENCE
+    bool
+    default y
+
 config SOC_COEX_HW_PTI
     bool
     default y
@@ -703,6 +707,10 @@ config SOC_WIFI_SUPPORT_VARIABLE_BEACON_WINDOW
     bool
     default y
 
+config SOC_WIFI_PHY_NEEDS_USB_WORKAROUND
+    bool
+    default y
+
 config SOC_BLE_SUPPORTED
     bool
     default y
@@ -724,6 +732,10 @@ config SOC_BLE_DEVICE_PRIVACY_SUPPORTED
     default y
 
 config SOC_BLUFI_SUPPORTED
+    bool
+    default y
+
+config SOC_BLE_PERIODIC_ADV_ENH_SUPPORTED
     bool
     default y
 
